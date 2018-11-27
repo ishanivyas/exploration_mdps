@@ -19,16 +19,18 @@ def mountains(s, d, x, y, r=np.random.uniform, nsc=3.0, nse=27.0):
     s[x+0,y+h] = (s[x+0,y+0] + s[x+0,y+d])/2 + r(d/nse)  # Left-middle
     s[x+h,y+d] = (s[x+d,y+d] + s[x+0,y+d])/2 + r(d/nse)  # Bottom-center
     s[x+d,y+h] = (s[x+d,y+d] + s[x+d,y+0])/2 + r(d/nse)  # Bottom-middle
-    # Recusively calculate the values for the sub-squares
+    # Recursively calculate the values for the 4 sub-squares.
     if h >= 2:
         mountains(s, h, x+0, y+0, r, nsc, nse)
         mountains(s, h, x+0, y+h, r, nsc, nse)
         mountains(s, h, x+h, y+0, r, nsc, nse)
         mountains(s, h, x+h, y+h, r, nsc, nse)
 
-def testMountains(d=16, r=np.random.uniform, nsc=3.0, nse=5.0):
-    s = np.ceil(np.random.uniform(0, 40, size=(d+1,d+1)))
-    mountains(s, d, 0, 0, r, nsc, nse)
+def testMountains(d=16, r=np.random.uniform, lo=13.0, hi=31.0):
+    lo = r(lo)
+    hi = r(low=lo, high=hi)
+    s = np.ceil(np.random.uniform(low=0, high=40, size=(d+1,d+1)))
+    mountains(s, d, 0, 0, r, lo, hi)
     s = np.ceil(s)
     plt.imshow(s)
     plt.show()
@@ -61,7 +63,7 @@ def clouds(s, d, x, y, z, r=np.random.uniform, nsc=3.0, nsf=27.0):
     s[x+d,y+h,z+0] = (s[x+d,y+d,z+0] + s[x+d,y+0,z+0])/2 + r(d/nsf)
     s[x+h,y+0,z+d] = (s[x+d,y+0,z+d] + s[x+0,y+0,z+d])/2 + r(d/nsf)
     s[x+h,y+d,z+0] = (s[x+d,y+d,z+0] + s[x+0,y+d,z+0])/2 + r(d/nsf)
-    # Recusively calculate the values for the 8 sub-cubes.
+    # Recursively calculate the values for the 8 sub-cubes.
     if h >= 2:
         clouds(s, h, x+0, y+0, z+0, r, nsc, nsf)
         clouds(s, h, x+0, y+0, z+h, r, nsc, nsf)
@@ -107,9 +109,12 @@ class Grid2D(World):
         self.width          = width
         self.height         = height
 
+        r = np.random.uniform
+        rCenterScale = r(13.0)  # The factor to reduce noise by in the center.
+        rEdgeScale = r(low=rCenterScale, high=r(31.0))  # The factor to reduce noise by along edges/faces.
         d = 2**ceil(log2(max(width, height)))
-        space = np.random.uniform(maxRange, size=(d+1,d+1))
-        mountains(space, d, 0, 0, np.random.uniform)
+        space = r(maxRange, size=(d+1,d+1))
+        mountains(space, d, 0, 0, r, nsc=rCenterScale, nse=rEdgeScale)
         self.data = np.round(space[0:width,0:height])
 
     def __getitem__(self, i):
@@ -185,7 +190,6 @@ class Grid3D(World):
             self.depth = depth
             self.data = np.full((widthOrArray,heightOrDeep,depth), initialValue)
         # TODO initialize the world to something more than initialValue:
-        #   See: https://en.wikipedia.org/wiki/Diamond-square_algorithm
 
     def copy(self):
         """Copy the data of a 3D grid into a new instance of Grid3D."""
