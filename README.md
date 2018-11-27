@@ -1,5 +1,13 @@
 # exploration_mdps
 
+# Objective:
+Compare the relative performance of different exploration strategies in a Markov Decision
+Process using a simple simulated environment. Measures of performance include total reward
+and distance between empirical estimates and optimal values after some number of iterations.
+If time remains, it would be useful to extend the environment to see how the exploration
+strategies scale with increases in the dimensionality of the environment.
+
+
 # Outline:
  ● Select an MDP & a reward function
     ○ Gridworld
