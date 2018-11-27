@@ -4,7 +4,7 @@ Created By Ishani Vyas
 """
 import numpy as np
 import matplotlib.pyplot as plt
-from math import *
+from math import log2,ceil
 
 np.set_printoptions(linewidth=362)
 np.set_printoptions(sign=' ')
@@ -12,8 +12,6 @@ np.set_printoptions(sign=' ')
 def mountains(s, d, x, y, r=np.random.uniform, nsc=3.0, nse=27.0):
     """Apply the diamond-square algorithm to produce random mountains."""
     #   See: https://en.wikipedia.org/wiki/Diamond-square_algorithm
-    if d < 2:
-        return
     h = d//2  # Calc the half-dimension using integer division.
     s[x+h,y+h] = (s[x,y] + s[x+d,y] + s[x,y+d] + s[x+d,y+d])/4 + r(d/nsc)  # Center-middle
     # Calculate the edge values.
@@ -22,10 +20,11 @@ def mountains(s, d, x, y, r=np.random.uniform, nsc=3.0, nse=27.0):
     s[x+h,y+d] = (s[x+d,y+d] + s[x+0,y+d])/2 + r(d/nse)  # Bottom-center
     s[x+d,y+h] = (s[x+d,y+d] + s[x+d,y+0])/2 + r(d/nse)  # Bottom-middle
     # Recusively calculate the values for the sub-squares
-    mountains(s, h, x+0, y+0, r, nsc, nse)
-    mountains(s, h, x+0, y+h, r, nsc, nse)
-    mountains(s, h, x+h, y+0, r, nsc, nse)
-    mountains(s, h, x+h, y+h, r, nsc, nse)
+    if h >= 2:
+        mountains(s, h, x+0, y+0, r, nsc, nse)
+        mountains(s, h, x+0, y+h, r, nsc, nse)
+        mountains(s, h, x+h, y+0, r, nsc, nse)
+        mountains(s, h, x+h, y+h, r, nsc, nse)
 
 def testMountains(d=16, r=np.random.uniform, nsc=3.0, nse=5.0):
     s = np.ceil(np.random.uniform(0, 40, size=(d+1,d+1)))
@@ -37,11 +36,9 @@ def testMountains(d=16, r=np.random.uniform, nsc=3.0, nse=5.0):
 
 #-m = testMountains(256)
 
-def clouds(s, d, x, y, z, r=np.random.uniform, nsc=3.0, nsf=5.0):
+def clouds(s, d, x, y, z, r=np.random.uniform, nsc=3.0, nsf=27.0):
     """Apply the diamond-square algorithm to produce random clouds."""
     #   See: https://en.wikipedia.org/wiki/Diamond-square_algorithm
-    if d < 2:
-        return
     h = d//2  # Calc the half-dimension using integer division.
     s[x+h,y+h,z+h] = (s[x,y,z]   + s[x+d,y,z]   + s[x,y+d,z]   + s[x+d,y+d,z] + s[x,y,z+d] + s[x+d,y,z+d] + s[x,y+d,z+d] + s[x+d,y+d,z+d])/8 + r(d/nsc)  # Center-middle
     # Calculate the 6 face-centered values.
@@ -65,14 +62,15 @@ def clouds(s, d, x, y, z, r=np.random.uniform, nsc=3.0, nsf=5.0):
     s[x+h,y+0,z+d] = (s[x+d,y+0,z+d] + s[x+0,y+0,z+d])/2 + r(d/nsf)
     s[x+h,y+d,z+0] = (s[x+d,y+d,z+0] + s[x+0,y+d,z+0])/2 + r(d/nsf)
     # Recusively calculate the values for the 8 sub-cubes.
-    clouds(s, h, x+0, y+0, z+0, r, nsc, nsf)
-    clouds(s, h, x+0, y+0, z+h, r, nsc, nsf)
-    clouds(s, h, x+0, y+h, z+0, r, nsc, nsf)
-    clouds(s, h, x+0, y+h, z+h, r, nsc, nsf)
-    clouds(s, h, x+h, y+0, z+0, r, nsc, nsf)
-    clouds(s, h, x+h, y+0, z+h, r, nsc, nsf)
-    clouds(s, h, x+h, y+h, z+0, r, nsc, nsf)
-    clouds(s, h, x+h, y+h, z+h, r, nsc, nsf)
+    if h >= 2:
+        clouds(s, h, x+0, y+0, z+0, r, nsc, nsf)
+        clouds(s, h, x+0, y+0, z+h, r, nsc, nsf)
+        clouds(s, h, x+0, y+h, z+0, r, nsc, nsf)
+        clouds(s, h, x+0, y+h, z+h, r, nsc, nsf)
+        clouds(s, h, x+h, y+0, z+0, r, nsc, nsf)
+        clouds(s, h, x+h, y+0, z+h, r, nsc, nsf)
+        clouds(s, h, x+h, y+h, z+0, r, nsc, nsf)
+        clouds(s, h, x+h, y+h, z+h, r, nsc, nsf)
 
 def testClouds(d):
     s = np.ceil(np.random.uniform(0, 40, size=(d+1,d+1,d+1)))
@@ -102,17 +100,17 @@ class Grid2D(World):
     """
     2D grid world
     """
-    def __init__(self, width, height, initialValue=' '):
+    def __init__(self, width, height, maxRange):
         self.terminalState  = 'TERMINAL_STATE'
         self.state_dim      = 2  # The number of coordinates needed to unambiguously define an agent's state in the world.
         self.max_action_dim = 8  # 3*3 - 1
         self.width          = width
         self.height         = height
-        self.data           = [[initialValue for y in range(height)] for x in range(width)]
 
         d = 2**ceil(log2(max(width, height)))
-        space = np.random.uniform(size=(d+1,d+1))
+        space = np.random.uniform(maxRange, size=(d+1,d+1))
         mountains(space, d, 0, 0, np.random.uniform)
+        self.data = np.round(space[0:width,0:height])
 
     def __getitem__(self, i):
         return self.data[i]
