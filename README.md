@@ -1,9 +1,9 @@
 # exploration_mdps
 
-Outline:
-● Select an MDP & a reward function
-○ Gridworld
-○ Extend Gridworld
+# Outline:
+ ● Select an MDP & a reward function
+    ○ Gridworld
+    ○ Extend Gridworld
 ■ Simplify to hexagonal grid (instead of 8 adjacent cells, there will be only 6)
 ■ Vary/extend the range of grid height values
 ■ 3D (i.e. Cubeworld, 26 adjacent cells)
