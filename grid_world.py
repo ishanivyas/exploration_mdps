@@ -27,6 +27,7 @@ def mountains(s, d, x, y, r=np.random.uniform, nsc=3.0, nse=27.0):
         mountains(s, h, x+h, y+h, r, nsc, nse)
 
 def testMountains(d=16, r=np.random.uniform, lo=13.0, hi=31.0):
+    #lo and hi are noise factors for the center and edges respectively.
     lo = r(lo)
     hi = r(low=lo, high=hi)
     s = np.ceil(np.random.uniform(low=0, high=40, size=(d+1,d+1)))
