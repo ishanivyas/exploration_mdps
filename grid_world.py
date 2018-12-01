@@ -18,7 +18,16 @@ class World:
         """Return the coordinates of grid spaces next to `s`."""
         pass
 
-class Grid2D(World):
+class Grid(World):
+    def __init__(self):
+        pass
+
+    def distance(self, s0, s1):
+        """Return the Manhattan distance between the two states but allow diagonal moves."""
+        d = np.abs(s0 - s1)  # Manhattan distance...
+        return np.amax(d)    # ...allowing diagonals.
+
+class Grid2D(Grid):
     """
     2D grid world
     """
@@ -63,11 +72,6 @@ class Grid2D(World):
         g.data = self.data
         return g
 
-    def distance(self, s0, s1):
-        """Return the Manhattan distance between the two states but allow diagonal moves."""
-        d = np.abs(s0 - s1)
-        return np.sum(d) - np.min(d)
-
     def adjacent(self, s):
         """Return the actions avalaible from state s and the states they reach."""
         adj = []
@@ -91,7 +95,7 @@ class Grid2D(World):
     def __str__(self):
         return str(self._getLegacyText())
 
-class Grid3D(World):
+class Grid3D(Grid):
     """
         3D gridworld
     """
@@ -123,11 +127,6 @@ class Grid3D(World):
 
     def shallowCopy(self):
         return Grid3D(self.data, False)
-
-    def distance(self, s0, s1):
-        """Return the Manhattan distance between the two states but allow diagonal moves."""
-        d = np.abs(s0 - s1)  # Manhattan distance...
-        return np.amax(d)    # ...allowing diagonals.
 
     def adjacent(self, s):
         """Return the coordinates of grid spaces next to `s`."""
