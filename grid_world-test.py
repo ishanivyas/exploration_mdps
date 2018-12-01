@@ -1,14 +1,15 @@
 """
 Test the creation of grid-world Worlds.
 """
-import os
 import numpy as np
 import grid_world as gw
 
-np.set_printoptions(linewidth=os.get_terminal_size().columns)
-#-np.set_printoptions(sign=' ')
 
 if __name__ == "__main__":
+    import os
+    np.set_printoptions(linewidth=os.get_terminal_size().columns)
+    #-np.set_printoptions(sign=' ')
+
     print("SmallWorld:")
     sw = gw.Grid2D(np.arange(64).reshape((8,8)))
     sw.data[:,0] = np.arange(sw.data.shape[0])
