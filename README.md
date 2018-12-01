@@ -25,7 +25,7 @@ strategies scale with increases in the dimensionality of the environment.
 	* Greedy
 	* Epsilon-Greedy
 	* Boltzmann
-● Measure RL strategies over the course of the roll-outs
+* Measure RL strategies over the course of the roll-outs
 	* Total reward (may not be possible if rewards are given at the end)
 	* Difference between empirical values and optimal values
 	* Number of steps to achieve goal
