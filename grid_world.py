@@ -229,7 +229,7 @@ class Agent:
         self.max_action_dim = env.max_action_dim
         self.state          = env.randomState()
 
-    def get_action(self):
+    def get_action(self, t):
         """Get the action to perform."""
         # Randomly do stuff
         return np.random.choice(self.env.adjacent(self.state)[0])
@@ -257,7 +257,7 @@ class EpsilonGreedyAgent(Agent):
             for a in env.actions_allowed(s):
                 self.Q[(s, a)] = 0
 
-    def get_action(self):
+    def get_action(self, t):
         actions_allowed = self.env.actions_allowed(self.state)
         # Epsilon-greedy agent policy
         if np.random.uniform(0, 1) < self.epsilon:
@@ -311,7 +311,7 @@ def Simulate(agent, env, T, sequential=False):
             agent.state = next_state
 
         # Get the agent's action at this timestep.
-        a_i = agent.get_action()
+        a_i = agent.get_action(t_i)
 
         # Get the next state by transitioning in the environment
         next_state = env.transition(agent.state, a_i)
