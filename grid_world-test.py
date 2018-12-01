@@ -1,6 +1,7 @@
 """
 Test the creation of grid-world Worlds.
 """
+import os
 import numpy as np
 import grid_world as gw
 

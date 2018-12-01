@@ -1,10 +1,9 @@
 """
 Generate random worlds that are squares/cubes of size 2^n.
 """
-import os
 import numpy as np
 
-def mountains(s, d, x, y, r=np.random.uniform, nsc=3.0, nse=27.0):
+def mountains(s, d, x=0, y=0, r=np.random.uniform, nsc=3.0, nse=27.0):
     """Apply the diamond-square algorithm to produce random mountains."""
     #   See: https://en.wikipedia.org/wiki/Diamond-square_algorithm
     h = d//2  # Calc the half-dimension using integer division.
@@ -21,7 +20,7 @@ def mountains(s, d, x, y, r=np.random.uniform, nsc=3.0, nse=27.0):
         mountains(s, h, x+h, y+0, r, nsc, nse)
         mountains(s, h, x+h, y+h, r, nsc, nse)
 
-def clouds(s, d, x, y, z, r=np.random.uniform, nsc=3.0, nsf=27.0):
+def clouds(s, d, x=0, y=0, z=0, r=np.random.uniform, nsc=3.0, nsf=27.0):
     """Apply the diamond-square algorithm to produce random clouds."""
     #   See: https://en.wikipedia.org/wiki/Diamond-square_algorithm
     h = d//2  # Calc the half-dimension using integer division.
