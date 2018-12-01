@@ -23,7 +23,10 @@ class World:
         return self.adjacent(s)[0]
 
     def transition(self, s, a):
-        """Returns the next state after taking action `a` from state `s`."""
+        """
+            Returns the next state after taking action `a` from state `s`.
+            NOTE: for some Worlds this may not be deterministic.
+        """
         return np.add(s, a)
 
 
@@ -254,15 +257,17 @@ class EpsilonGreedyAgent(Agent):
             return np.random.choice(actions_greedy)
 
     def train(self, memory):
-        # -----------------------------
-        # Update:
-        #
-        # Q[s,a] <- Q[s,a] + beta * (R[s,a] + gamma * max(Q[s,:]) - Q[s,a])
-        #
-        #  R[s,a] = reward for taking action a from state s
-        #  beta = learning rate
-        #  gamma = discount factor
-        # -----------------------------
+        """
+            Update:
+
+                Q[s,a] <- Q[s,a] + beta * (R[s,a] + gamma * max(Q[s,:]) - Q[s,a])
+
+            Where:
+
+                R[s,a] = reward for taking action a from state s
+                beta   = learning rate
+                gamma  = discount factor
+        """
         (state, action, state_next, reward, done) = memory
         sa = (state, action)
         max_next_value = np.max(list(self.Q[(state_next, a)] for a in self.env.actions_allowed(state_next)))
