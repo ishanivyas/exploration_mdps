@@ -42,6 +42,12 @@ class Grid2D(Grid):
     2D grid world
     """
     def __init__(self, widthOrArray, height=None, maxRange=None):
+        """
+        Examples:
+          w = Grid2D(3,4, 8)  # A 3x4 grid
+          w = Grid2D(np.array([[1,2],
+                               [2,3]]))
+        """
         self.terminalState  = 'TERMINAL_STATE'
         self.state_dim      = 2  # The number of coordinates needed to unambiguously define an agent's state in the world.
         self.max_action_dim = 8  # 3*3 - 1
@@ -126,7 +132,13 @@ class Grid3D(Grid):
     """
         3D gridworld
     """
-    def __init__(self, widthOrArray, heightOrDeep=None, depth=None, initialValue=' '):
+    def __init__(self, widthOrArray, heightOrDeep=None, depth=None, maxRange=None):
+        """
+        Examples:
+          w = Grid3D(3,4,5, 8)
+          w = Grid3D(np.array([[[1,2], [2,2]],
+                               [[1,2], [3,4]]]))
+        """
         self.terminalState  = 'TERMINAL_STATE'
         self.state_dim      = 3   # The number of coordinates needed to unambiguously define an agent's state in the world.
         self.max_action_dim = 26  # 3*3*3 - 1
@@ -142,8 +154,13 @@ class Grid3D(Grid):
             self.width = widthOrArray
             self.height = heightOrDeep
             self.depth = depth
-            self.data = np.full((widthOrArray,heightOrDeep,depth), initialValue)
-        # TODO initialize the world to something more than initialValue:
+            r = np.random.uniform
+            rCenterScale = r(13.0)  # The factor to reduce noise by in the center.
+            rEdgeScale = r(low=rCenterScale, high=r(31.0))  # The factor to reduce noise by along edges/faces.
+            d = 2**ceil(log2(max(widthOrArray, height, depth)))
+            space = r(maxRange, size=(d+1, d+1, d+1))
+            rw.clouds(space, d, nsc=rCenterScale, nse=rEdgeScale)
+            self.data = np.round(space[0:widthOrArray, 0:height, 0:depth])
 
     def copy(self):
         """Copy the data of a 3D grid into a new instance of Grid3D."""
