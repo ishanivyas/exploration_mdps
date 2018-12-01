@@ -196,16 +196,17 @@ class Grid3D(Grid):
     def randomState(self):
         return np.array([np.random.randint(self.width),
                          np.random.randint(self.height),
-                         np.random.randint(self.depth)]
+                         np.random.randint(self.depth)])
+
 
 def makeGrid(gridString):
-  width, height = len(gridString[0]), len(gridString)
-  grid = Grid2D(width, height)
-  for ybar, line in enumerate(gridString):
-    y = height - ybar - 1
-    for x, el in enumerate(line):
-      grid[x][y] = el
-  return grid
+    width, height = len(gridString[0]), len(gridString)
+    grid = Grid2D(width, height)
+    for ybar, line in enumerate(gridString):
+        y = height - ybar - 1
+        for x, el in enumerate(line):
+            grid[x][y] = el
+    return grid
 
 
 class Agent:
@@ -304,6 +305,7 @@ def Simulate(agent, env, T, sequential=False):
     print("Here are the agent's final Q values:")
     agent.display_greedy_policy()
 
-env = Grid2D(3, 3, 10)
-Simulate(EpsilonGreedyAgent(env), env, 100)
+if __name__ == "__main__":
+    env = Grid2D(3, 3, 10)
+    Simulate(EpsilonGreedyAgent(env), env, 100)
 
