@@ -15,8 +15,17 @@ class World:
         return np.sum(np.abs(s0 - s1))
 
     def adjacent(self, s):
-        """Return the coordinates of grid spaces next to `s`."""
+        """Return the actions avalaible from state s and the states they reach."""
         pass
+
+    def actions_allowed(self, s):
+        """Return the available actions from `s`."""
+        return self.adjacent(s)[0]
+
+    def transition(self, s, a):
+        """Returns the next state after taking action `a` from state `s`."""
+        return np.add(s, a)
+
 
 class Grid(World):
     def __init__(self):
@@ -26,6 +35,7 @@ class Grid(World):
         """Return the Manhattan distance between the two states but allow diagonal moves."""
         d = np.abs(s0 - s1)  # Manhattan distance...
         return np.amax(d)    # ...allowing diagonals.
+
 
 class Grid2D(Grid):
     """
@@ -77,41 +87,19 @@ class Grid2D(Grid):
         return g
 
     def adjacent(self, s):
-        """Return the coordinates of grid spaces next to `s`."""
-        a = []
-        d = [-1, 0,1]
+        """Return the actions avalaible from state s and the states they reach."""
+        adj = []
+        act = []
+        d = [-1,0,1]
         for dy in d:
             for dx in d:
-                if dx == dy and dy == 0:
-                    continue 
+                if dx == dy == 0: continue
                 s_prime = s + np.array([dx, dy])
-                if s_prime[0] < 0 or s_prime[1] < 0:
-                    continue 
-                if s_prime[0] >= self.width or s_prime[1] >= self.height:
-                    continue 
-                a.append(s_prime)
-        return a
-
-    def actions_allowed(self, s):
-        """Return the available actions from `s`."""
-        a = []
-        d = [-1, 0,1]
-        for dy in d:
-            for dx in d:
-                if dx == dy and dy == 0:
-                    continue 
-                s_prime = s + np.array([dx, dy])
-                if s_prime[0] < 0 or s_prime[1] < 0:
-                    continue 
-                if s_prime[0] >= self.width or s_prime[1] >= self.height:
-                    continue 
-                a.append((dx, dy))
-        return a
-
-    def transition(self, s, a):
-        """Returns the next state after taking action `a` from state `s`."""
-        return tuple(np.add(s, a))
-
+                if s_prime[0] < 0 or s_prime[1] < 0: continue
+                if s_prime[0] >= self.width or s_prime[1] >= self.height: continue
+                act.append(np.array([dx,dy]))
+                adj.append(s_prime)
+        return act,adj
 
     def _getLegacyText(self):
         t = [[self.data[x][y] for x in range(self.width)] for y in range(self.height)]
@@ -121,12 +109,12 @@ class Grid2D(Grid):
     def __str__(self):
         return str(self._getLegacyText())
 
-    # Returns the coordinates of a random state.
     def randomState(self):
+        """Returns the coordinates of a random state."""
         return (np.random.randint(self.width),np.random.randint(self.height))
 
-    # Returns a list of all possible state coordinates [(x, y)]
     def enumerateStates(self):
+        """Returns a list of all possible state coordinates [(x, y), ...]"""
         states = []
         for i in range(self.width):
             for j in range(self.height):
@@ -169,46 +157,29 @@ class Grid3D(Grid):
 
     def adjacent(self, s):
         """Return the actions available from state s and the states they reach."""
+        act = []
         adj = []
         d = [-1,0,1]
         for dz in d:
             for dy in d:
                 for dx in d:
-                    if dx == dy == 0:
-                        continue 
-                    s_prime = s + np.array([dx, dy])
-                    if s_prime[0] < 0 or s_prime[1] < 0:
-                        continue 
-                    if s_prime[0] >= self.width or s_prime[1] >= self.height:
-                        continue 
-                    a.append(s_prime)
-        return a
-
-    def actions_allowed(self, s):
-        """Return the actions available from `s`."""
-        a = []
-        d = [-1,0,1]
-        for dz in d:
-            for dy in d:
-                for dx in d:
-                    if dx == dy == 0:
-                        continue 
-                    s_prime = s + np.array([dx, dy])
-                    if s_prime[0] < 0 or s_prime[1] < 0:
-                        continue 
-                    if s_prime[0] >= self.width or s_prime[1] >= self.height:
-                        continue 
-                    a.append((dx, dy, dz))
-        return a
-
-    def _getLegacyText(self):
-        return str(self.data)
+                    if dx == dy == dz == 0: continue
+                    action = np.array([dx,dy,dz])
+                    s_prime = s + action
+                    if s_prime[0] < 0 or s_prime[1] < 0 or s_prime[2] < 0: continue
+                    if s_prime[0] >= self.width or s_prime[1] >= self.height or s_prime[2] >= self.depth:
+                        continue
+                    act.append(action)
+                    adj.append(s_prime)
+        return act,adj
 
     def __str__(self):
         return str(self.data)
 
     def randomState(self):
-        return self.data[np.random.randint(width),np.random.randint(height)]
+        return np.array([np.random.randint(self.width),
+                         np.random.randint(self.height),
+                         np.random.randint(self.depth)]
 
 def makeGrid(gridString):
   width, height = len(gridString[0]), len(gridString)
@@ -218,6 +189,7 @@ def makeGrid(gridString):
     for x, el in enumerate(line):
       grid[x][y] = el
   return grid
+
 
 class Agent:
     def __init__(self, env):
@@ -251,7 +223,7 @@ class EpsilonGreedyAgent(Agent):
             for a in env.actions_allowed(s):
                 self.Q[(s, a)] = 0
 
-    def get_action(self,):
+    def get_action(self):
         actions_allowed = self.env.actions_allowed(self.state)
         # Epsilon-greedy agent policy
         if np.random.uniform(0, 1) < self.epsilon:
@@ -284,8 +256,10 @@ class EpsilonGreedyAgent(Agent):
             s, a = k
             print("State: ", s, "; Action: ", a, "; Q-Value", v)
 
+
 def Simulate(agent, env, T, sequential=False):
     print(env.data)
+
     # Set initial state.
     if sequential:
         next_state = agent.state
