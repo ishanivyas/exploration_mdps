@@ -2,11 +2,12 @@
 Creating a 2D and 3D grid environment for agent to move around.
 Created By Ishani Vyas
 """
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 from math import log2,ceil
 
-np.set_printoptions(linewidth=362)
+np.set_printoptions(linewidth=os.get_terminal_size().columns)
 np.set_printoptions(sign=' ')
 
 def mountains(s, d, x, y, r=np.random.uniform, nsc=3.0, nse=27.0):
