@@ -1,3 +1,6 @@
+"""
+Generate random worlds that are squares/cubes of size 2^n.
+"""
 import os
 import numpy as np
 
