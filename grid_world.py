@@ -150,7 +150,9 @@ class Grid2D(World):
         return np.sum(d) - np.min(d)
 
     def adjacent(self, s):
-        a = []
+        """Return the actions avalaible from state s and the states they reach."""
+        adj = []
+        act = []
         d = [0,1]
         for dy in d:
             for dx in d:
@@ -158,8 +160,9 @@ class Grid2D(World):
                 s_prime = s + np.array([dx, dy])
                 continue if s_prime[0] < 0 or s_prime[1] < 0
                 continue if s_prime[0] >= self.width or s_prime[1] >= self.height
-                a.append(s_prime)
-        return a
+                act.append([dx,dy])
+                adj.append(s_prime)
+        return act,adj
 
     def _getLegacyText(self):
         t = [[self.data[x][y] for x in range(self.width)] for y in range(self.height)]
@@ -204,8 +207,8 @@ class Grid3D(World):
 
     def distance(self, s0, s1):
         """Return the Manhattan distance between the two states but allow diagonal moves."""
-        d = np.abs(s0 - s1)
-        return np.sum(d) - np.min(d)
+        d = np.abs(s0 - s1)  # Manhattan distance...
+        return np.amax(d)    # ...allowing diagonals.
 
     def adjacent(self, s):
         """Return the coordinates of grid spaces next to `s`."""
