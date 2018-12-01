@@ -8,13 +8,13 @@ import matplotlib.pyplot as plt
 from math import log2,ceil
 
 np.set_printoptions(linewidth=os.get_terminal_size().columns)
-np.set_printoptions(sign=' ')
+#-np.set_printoptions(sign=' ')
 
 def mountains(s, d, x, y, r=np.random.uniform, nsc=3.0, nse=27.0):
     """Apply the diamond-square algorithm to produce random mountains."""
     #   See: https://en.wikipedia.org/wiki/Diamond-square_algorithm
     h = d//2  # Calc the half-dimension using integer division.
-    s[x+h,y+h] = (s[x,y] + s[x+d,y] + s[x,y+d] + s[x+d,y+d])/4 + r(d/nsc)  # Center-middle
+    s[x+h,y+h] = c = (s[x,y] + s[x+d,y] + s[x,y+d] + s[x+d,y+d])/4 + r(d/nsc)  # Center-middle
     # Calculate the edge values.
     s[x+h,y+0] = (s[x+0,y+0] + s[x+d,y+0])/2 + r(d/nse)  # Top-center
     s[x+0,y+h] = (s[x+0,y+0] + s[x+0,y+d])/2 + r(d/nse)  # Left-middle
@@ -28,7 +28,7 @@ def mountains(s, d, x, y, r=np.random.uniform, nsc=3.0, nse=27.0):
         mountains(s, h, x+h, y+h, r, nsc, nse)
 
 def testMountains(d=16, r=np.random.uniform, lo=13.0, hi=31.0):
-    #lo and hi are noise factors for the center and edges respectively.
+    # lo and hi are noise factors for the center and edges respectively.
     lo = r(lo)
     hi = r(low=lo, high=hi)
     s = np.ceil(np.random.uniform(low=0, high=40, size=(d+1,d+1)))
@@ -80,7 +80,7 @@ def testClouds(d):
     s = np.ceil(np.random.uniform(0, 40, size=(d+1,d+1,d+1)))
     clouds(s, d, 0, 0, 0)
     s = np.ceil(s)
-    for i in range(min(64,d+1)):
+    for i in range(min(32,d+1)):
         print("i=%d" % i)
         plt.imshow(s[:,:,i])
         plt.show()
@@ -157,10 +157,10 @@ class Grid2D(World):
         d = [0,1]
         for dy in d:
             for dx in d:
-                continue if dx == dy == 0
+                if dx == dy == 0: continue
                 s_prime = s + np.array([dx, dy])
-                continue if s_prime[0] < 0 or s_prime[1] < 0
-                continue if s_prime[0] >= self.width or s_prime[1] >= self.height
+                if s_prime[0] < 0 or s_prime[1] < 0: continue
+                if s_prime[0] >= self.width or s_prime[1] >= self.height: continue
                 act.append([dx,dy])
                 adj.append(s_prime)
         return act,adj
@@ -218,10 +218,10 @@ class Grid3D(World):
         for dz in d:
             for dy in d:
                 for dx in d:
-                    continue if dx == dy == 0
+                    if dx == dy == 0: continue
                     s_prime = s + np.array([dx, dy])
-                    continue if s_prime[0] < 0 or s_prime[1] < 0
-                    continue if s_prime[0] >= self.width or s_prime[1] >= self.height
+                    if s_prime[0] < 0 or s_prime[1] < 0: continue
+                    if s_prime[0] >= self.width or s_prime[1] >= self.height: continue
                     a.append(s_prime)
         return a
 
