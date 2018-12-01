@@ -4,6 +4,9 @@ Test the creation of grid-world Worlds.
 import numpy as np
 import grid_world as gw
 
+np.set_printoptions(linewidth=os.get_terminal_size().columns)
+#-np.set_printoptions(sign=' ')
+
 if __name__ == "__main__":
     print("SmallWorld:")
     sw = gw.Grid2D(np.arange(64).reshape((8,8)))

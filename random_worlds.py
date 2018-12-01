@@ -4,9 +4,6 @@ Generate random worlds that are squares/cubes of size 2^n.
 import os
 import numpy as np
 
-np.set_printoptions(linewidth=os.get_terminal_size().columns)
-#-np.set_printoptions(sign=' ')
-
 def mountains(s, d, x, y, r=np.random.uniform, nsc=3.0, nse=27.0):
     """Apply the diamond-square algorithm to produce random mountains."""
     #   See: https://en.wikipedia.org/wiki/Diamond-square_algorithm

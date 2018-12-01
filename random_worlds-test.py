@@ -5,6 +5,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import random_worlds as t
 
+np.set_printoptions(linewidth=os.get_terminal_size().columns)
+#-np.set_printoptions(sign=' ')
+
 def testMountains(d=16, r=np.random.uniform, lo=13.0, hi=31.0):
     # lo and hi are noise factors for the center and edges respectively.
     lo = r(lo)
