@@ -31,20 +31,24 @@ class Grid2D(Grid):
     """
     2D grid world
     """
-    def __init__(self, width, height, maxRange):
+    def __init__(self, widthOrArray, height=None, maxRange=None):
         self.terminalState  = 'TERMINAL_STATE'
         self.state_dim      = 2  # The number of coordinates needed to unambiguously define an agent's state in the world.
         self.max_action_dim = 8  # 3*3 - 1
-        self.width          = width
-        self.height         = height
 
-        r = np.random.uniform
-        rCenterScale = r(13.0)  # The factor to reduce noise by in the center.
-        rEdgeScale = r(low=rCenterScale, high=r(31.0))  # The factor to reduce noise by along edges/faces.
-        d = 2**ceil(log2(max(width, height)))
-        space = r(maxRange, size=(d+1,d+1))
-        rw.mountains(space, d, 0, 0, r, nsc=rCenterScale, nse=rEdgeScale)
-        self.data = np.round(space[0:width,0:height])
+        if isinstance(widthOrArray, np.ndarray):
+            self.width, self.height = widthOrArray.shape[0:2]
+            self.data = widthOrArray
+        else:
+            self.width          = widthOrArray
+            self.height         = height
+            r = np.random.uniform
+            rCenterScale = r(13.0)  # The factor to reduce noise by in the center.
+            rEdgeScale = r(low=rCenterScale, high=r(31.0))  # The factor to reduce noise by along edges/faces.
+            d = 2**ceil(log2(max(widthOrArray, height)))
+            space = r(maxRange, size=(d+1,d+1))
+            rw.mountains(space, d, 0, 0, r, nsc=rCenterScale, nse=rEdgeScale)
+            self.data = np.round(space[0:widthOrArray,0:height])
 
     def __getitem__(self, i):
         return self.data[i]
@@ -76,7 +80,7 @@ class Grid2D(Grid):
         """Return the actions avalaible from state s and the states they reach."""
         adj = []
         act = []
-        d = [0,1]
+        d = [-1,0,1]
         for dy in d:
             for dx in d:
                 if dx == dy == 0: continue
@@ -129,8 +133,8 @@ class Grid3D(Grid):
         return Grid3D(self.data, False)
 
     def adjacent(self, s):
-        """Return the coordinates of grid spaces next to `s`."""
-        a = []
+        """Return the actions available from state s and the states they reach."""
+        adj = []
         d = [-1,0,1]
         for dz in d:
             for dy in d:
@@ -139,8 +143,9 @@ class Grid3D(Grid):
                     s_prime = s + np.array([dx, dy])
                     if s_prime[0] < 0 or s_prime[1] < 0: continue
                     if s_prime[0] >= self.width or s_prime[1] >= self.height: continue
-                    a.append(s_prime)
-        return a
+                    act.append([dx,dy,dz])
+                    adj.append(s_prime)
+        return act,adj
 
     def _getLegacyText(self):
         return str(self.data)
