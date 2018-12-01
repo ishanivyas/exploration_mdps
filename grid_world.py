@@ -2,92 +2,9 @@
 Creating a 2D and 3D grid environment for agent to move around.
 Created By Ishani Vyas
 """
-
-import os
 import numpy as np
-import matplotlib.pyplot as plt
+import random_worlds as rw
 from math import log2,ceil
-
-np.set_printoptions(linewidth=os.get_terminal_size().columns)
-#-np.set_printoptions(sign=' ')
-
-def mountains(s, d, x, y, r=np.random.uniform, nsc=3.0, nse=27.0):
-    """Apply the diamond-square algorithm to produce random mountains."""
-    #   See: https://en.wikipedia.org/wiki/Diamond-square_algorithm
-    h = d//2  # Calc the half-dimension using integer division.
-    s[x+h,y+h] = c = (s[x,y] + s[x+d,y] + s[x,y+d] + s[x+d,y+d])/4 + r(d/nsc)  # Center-middle
-    # Calculate the edge values.
-    s[x+h,y+0] = (s[x+0,y+0] + s[x+d,y+0])/2 + r(d/nse)  # Top-center
-    s[x+0,y+h] = (s[x+0,y+0] + s[x+0,y+d])/2 + r(d/nse)  # Left-middle
-    s[x+h,y+d] = (s[x+d,y+d] + s[x+0,y+d])/2 + r(d/nse)  # Bottom-center
-    s[x+d,y+h] = (s[x+d,y+d] + s[x+d,y+0])/2 + r(d/nse)  # Bottom-middle
-    # Recursively calculate the values for the 4 sub-squares.
-    if h >= 2:
-        mountains(s, h, x+0, y+0, r, nsc, nse)
-        mountains(s, h, x+0, y+h, r, nsc, nse)
-        mountains(s, h, x+h, y+0, r, nsc, nse)
-        mountains(s, h, x+h, y+h, r, nsc, nse)
-
-def testMountains(d=16, r=np.random.uniform, lo=13.0, hi=31.0):
-    # lo and hi are noise factors for the center and edges respectively.
-    lo = r(lo)
-    hi = r(low=lo, high=hi)
-    s = np.ceil(np.random.uniform(low=0, high=40, size=(d+1,d+1)))
-    mountains(s, d, 0, 0, r, lo, hi)
-    s = np.ceil(s)
-    plt.imshow(s)
-    plt.show()
-    return s
-
-#-m = testMountains(256)
-
-def clouds(s, d, x, y, z, r=np.random.uniform, nsc=3.0, nsf=27.0):
-    """Apply the diamond-square algorithm to produce random clouds."""
-    #   See: https://en.wikipedia.org/wiki/Diamond-square_algorithm
-    h = d//2  # Calc the half-dimension using integer division.
-    s[x+h,y+h,z+h] = (s[x,y,z]   + s[x+d,y,z]   + s[x,y+d,z]   + s[x+d,y+d,z] + s[x,y,z+d] + s[x+d,y,z+d] + s[x,y+d,z+d] + s[x+d,y+d,z+d])/8 + r(d/nsc)  # Center-middle
-    # Calculate the 6 face-centered values.
-    s[x+h,y+h,z+0] = (s[x+0,y+0,z+0] + s[x+0,y+d,z+0] + s[x+d,y+d,z+0] + s[x+d,y+0,z+0])/4 + r(d/nsf)  # XY plane, Z=z+0
-    s[x+h,y+0,z+h] = (s[x+0,y+0,z+0] + s[x+d,y+0,z+0] + s[x+d,y+0,z+d] + s[x+0,y+0,z+d])/4 + r(d/nsf)  # XZ plane, Y=y+0
-    s[x+0,y+h,z+h] = (s[x+0,y+0,z+0] + s[x+0,y+d,z+0] + s[x+0,y+d,z+d] + s[x+0,y+0,z+d])/4 + r(d/nsf)  # YZ plane, X=x+0
-    s[x+h,y+h,z+d] = (s[x+d,y+d,z+d] + s[x+d,y+0,z+d] + s[x+0,y+0,z+d] + s[x+0,y+d,z+d])/4 + r(d/nsf)  # XY plane, Z=z+d
-    s[x+h,y+d,z+h] = (s[x+d,y+d,z+d] + s[x+0,y+d,z+d] + s[x+0,y+d,z+0] + s[x+d,y+d,z+0])/4 + r(d/nsf)  # XZ plane, Y=y+d
-    s[x+d,y+h,z+h] = (s[x+d,y+d,z+d] + s[x+d,y+0,z+d] + s[x+d,y+0,z+0] + s[x+d,y+d,z+0])/4 + r(d/nsf)  # YZ plane, X=x+d
-    # Calculate the 12 edge-centered values.
-    s[x+0,y+0,z+h] = (s[x+0,y+0,z+0] + s[x+0,y+0,z+d])/2 + r(d/nsf)
-    s[x+0,y+h,z+0] = (s[x+0,y+0,z+0] + s[x+0,y+d,z+0])/2 + r(d/nsf)
-    s[x+h,y+0,z+0] = (s[x+0,y+0,z+0] + s[x+d,y+0,z+0])/2 + r(d/nsf)
-    s[x+d,y+d,z+h] = (s[x+d,y+d,z+d] + s[x+d,y+d,z+0])/2 + r(d/nsf)
-    s[x+d,y+h,z+d] = (s[x+d,y+d,z+d] + s[x+d,y+0,z+d])/2 + r(d/nsf)
-    s[x+h,y+d,z+d] = (s[x+d,y+d,z+d] + s[x+0,y+d,z+d])/2 + r(d/nsf)
-    s[x+0,y+d,z+h] = (s[x+0,y+d,z+d] + s[x+0,y+d,z+0])/2 + r(d/nsf)
-    s[x+d,y+0,z+h] = (s[x+d,y+0,z+d] + s[x+d,y+0,z+0])/2 + r(d/nsf)
-    s[x+0,y+h,z+d] = (s[x+0,y+d,z+d] + s[x+0,y+0,z+d])/2 + r(d/nsf)
-    s[x+d,y+h,z+0] = (s[x+d,y+d,z+0] + s[x+d,y+0,z+0])/2 + r(d/nsf)
-    s[x+h,y+0,z+d] = (s[x+d,y+0,z+d] + s[x+0,y+0,z+d])/2 + r(d/nsf)
-    s[x+h,y+d,z+0] = (s[x+d,y+d,z+0] + s[x+0,y+d,z+0])/2 + r(d/nsf)
-    # Recursively calculate the values for the 8 sub-cubes.
-    if h >= 2:
-        clouds(s, h, x+0, y+0, z+0, r, nsc, nsf)
-        clouds(s, h, x+0, y+0, z+h, r, nsc, nsf)
-        clouds(s, h, x+0, y+h, z+0, r, nsc, nsf)
-        clouds(s, h, x+0, y+h, z+h, r, nsc, nsf)
-        clouds(s, h, x+h, y+0, z+0, r, nsc, nsf)
-        clouds(s, h, x+h, y+0, z+h, r, nsc, nsf)
-        clouds(s, h, x+h, y+h, z+0, r, nsc, nsf)
-        clouds(s, h, x+h, y+h, z+h, r, nsc, nsf)
-
-def testClouds(d):
-    s = np.ceil(np.random.uniform(0, 40, size=(d+1,d+1,d+1)))
-    clouds(s, d, 0, 0, 0)
-    s = np.ceil(s)
-    for i in range(min(32,d+1)):
-        print("i=%d" % i)
-        plt.imshow(s[:,:,i])
-        plt.show()
-    return s
-
-#-c = testClouds(64)
 
 class World:
     def __init__(self):
@@ -117,7 +34,7 @@ class Grid2D(World):
         rEdgeScale = r(low=rCenterScale, high=r(31.0))  # The factor to reduce noise by along edges/faces.
         d = 2**ceil(log2(max(width, height)))
         space = r(maxRange, size=(d+1,d+1))
-        mountains(space, d, 0, 0, r, nsc=rCenterScale, nse=rEdgeScale)
+        rw.mountains(space, d, 0, 0, r, nsc=rCenterScale, nse=rEdgeScale)
         self.data = np.round(space[0:width,0:height])
 
     def __getitem__(self, i):
