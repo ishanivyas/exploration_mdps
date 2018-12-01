@@ -11,8 +11,12 @@ class World:
         pass
 
     def distance(self, s0, s1):
-        """Return the Manhattan distance between the two states."""
-        return np.sum(np.abs(s0 - s1))
+        """Return the (scalar) distance between the two states."""
+        pass
+
+    def contains(self, s):
+        """Return True if state is within the bounds of the World."""
+        pass
 
     def adjacent(self, s):
         """Return the actions avalaible from state s and the states they reach."""
@@ -33,6 +37,10 @@ class World:
 class Grid(World):
     def __init__(self):
         pass
+
+    def contains(self, s):
+        """Return True if state is within the bounds of the World."""
+        return np.amin(s) >= 0 and np.amin(self.bounds - s) > 0
 
     def distance(self, s0, s1):
         """Return the Manhattan distance between the two states but allow diagonal moves."""
@@ -59,6 +67,7 @@ class Grid2D(Grid):
             self.width, self.height = widthOrArray.shape[0:2]
             self.data = widthOrArray
         else:
+            self.bounds         = np.array([widthOrArray, height])
             self.width          = widthOrArray
             self.height         = height
             r = np.random.uniform
@@ -102,10 +111,10 @@ class Grid2D(Grid):
         d = [-1,0,1]
         for dy in d:
             for dx in d:
-                if dx == dy == 0: continue
-                s_prime = s + np.array([dx, dy])
-                if s_prime[0] < 0 or s_prime[1] < 0: continue
-                if s_prime[0] >= self.width or s_prime[1] >= self.height: continue
+                action = np.array([dx, dy])
+                s_prime = s + action
+                if self.distance(s, s_prime) == 0 or not self.contains(s_prime):
+                    continue
                 act.append(np.array([dx,dy]))
                 adj.append(s_prime)
         return act,adj
@@ -186,7 +195,7 @@ class Grid3D(Grid):
                     if dx == dy == dz == 0: continue
                     action = np.array([dx,dy,dz])
                     s_prime = s + action
-                    if s_prime[0] < 0 or s_prime[1] < 0 or s_prime[2] < 0: continue
+                    if np.amin(s_prime) < 0: continue
                     if s_prime[0] >= self.width or s_prime[1] >= self.height or s_prime[2] >= self.depth:
                         continue
                     act.append(action)
@@ -215,18 +224,22 @@ def makeGrid(gridString):
 class Agent:
     def __init__(self, env):
         # Store environment, state and action dimension
-        self.env = env
+        self.env            = env
         self.state_dim      = env.state_dim
         self.max_action_dim = env.max_action_dim
         self.state          = env.randomState()
 
     def get_action(self):
+        """Get the action to perform."""
         # Randomly do stuff
-        return np.random.choice(self.env.adjacent(self.state))
+        return np.random.choice(self.env.adjacent(self.state)[0])
 
     def train(self, memory):
         pass
 
+    def reward(self, world, state, time):
+        """Get the reward for an agent in a particular state of the world at a given time."""
+        pass
 
 class EpsilonGreedyAgent(Agent):
     def __init__(self, env):
@@ -255,6 +268,9 @@ class EpsilonGreedyAgent(Agent):
             Q_s             = self.Q[self.state, actions_allowed]
             actions_greedy  = actions_allowed[np.flatnonzero(Q_s == np.max(Q_s))]
             return np.random.choice(actions_greedy)
+
+    def reward(self, world, state, time):
+        return world[state]
 
     def train(self, memory):
         """
@@ -301,7 +317,7 @@ def Simulate(agent, env, T, sequential=False):
         next_state = env.transition(agent.state, a_i)
 
         # Get the reward for performing that action at this timestep.
-        r_i = env.data[next_state]
+        r_i = agent.reward(env, next_state, t_i)
 
         # Do one round of training.
         memory = (agent.state, a_i, next_state, r_i, False)
@@ -309,6 +325,7 @@ def Simulate(agent, env, T, sequential=False):
         agent.train(memory)
     print("Here are the agent's final Q values:")
     agent.display_greedy_policy()
+
 
 if __name__ == "__main__":
     env = Grid2D(3, 3, 10)
