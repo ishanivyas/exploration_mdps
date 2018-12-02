@@ -79,8 +79,8 @@ class Grid2D(Grid):
         else:
             self._initBounds(np.array([widthOrArray, height]))
             ur           = self.r.uniform
-            rCenterScale = ur(13.0)  # The factor to reduce noise by in the center.
-            rEdgeScale   = ur(low=rCenterScale, high=ur(31.0))  # The factor to reduce noise by along edges/faces.
+            rEdgeScale   = ur(13.0)  # The factor to reduce noise by along the edge/face.
+            rCenterScale = ur(low=rCenterScale, high=ur(31.0))  # The factor to reduce noise by in the center.
             d            = 2**ceil(log2(np.amax(self.bounds)))
             space        = ur(maxRange, size=(d+1,d+1))
             rw.mountains(space, d, r=ur, nsc=rCenterScale, nse=rEdgeScale)
@@ -203,8 +203,8 @@ class Grid3D(Grid):
         else:
             self._initBounds(np.array([widthOrArray, heightOrDeepCopy, depth]))
             ur           = self.r.uniform
-            rCenterScale = ur(13.0)  # The factor to reduce noise by in the center.
-            rEdgeScale   = ur(low=rCenterScale, high=ur(31.0))  # The factor to reduce noise by along edges/faces.
+            rEdgeScale   = ur(13.0)  # The factor to reduce noise by along the edges/faces.
+            rCenterScale = ur(low=rCenterScale, high=ur(31.0))  # The factor to reduce noise by in the center.
             d            = 2**ceil(log2(np.amax(self.bounds)))
             space        = ur(maxRange, size=(d+1, d+1, d+1))
             rw.clouds(space, d, r=ur, nsc=rCenterScale, nse=rEdgeScale)
