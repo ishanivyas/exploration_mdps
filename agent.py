@@ -76,16 +76,17 @@ class GreedyAgent(Agent):
 
 
 class EpsilonGreedyAgent(GreedyAgent):
-    def __init__(self, env, eps=1.0, r=np.random):
+    def __init__(self, env, eps=1.0, decay=1.0, r=np.random):
         super(EpsilonGreedyAgent, self).__init__(env, r)
         # Epsilon learning parameters
         self.epsilon       = eps   # initial exploration probability
-        self.epsilon_decay = 0.99  # epsilon decay after each episode
+        self.epsilon_decay = decay # epsilon decay after each episode
 
     def get_action(self, t):
         # Epsilon-greedy agent policy
         if self.r.uniform(0, 1) < self.epsilon:
             # Explore
+            self.epsilon *= self.epsilon_decay
             actions_allowed = self.env.actions_allowed(self.state)
             return actions_allowed[int(self.r.uniform(len(actions_allowed)))]
         else:
