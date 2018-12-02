@@ -53,8 +53,8 @@ class Grid(World):
 
     def randomState(self):
         """Returns the coordinates of a random state."""
-        return tuple(np.floor(self.bounds
-                              * self.r.uniform(size=self.bounds.shape)))
+        return tuple(np.floor(np.array(self.bounds)
+                              * self.r.uniform(size=(len(self.bounds)))))
 
 
 class Grid2D(Grid):
@@ -80,7 +80,7 @@ class Grid2D(Grid):
             self._initBounds(np.array([widthOrArray, height]))
             ur           = self.r.uniform
             rEdgeScale   = ur(13.0)  # The factor to reduce noise by along the edge/face.
-            rCenterScale = ur(low=rCenterScale, high=ur(31.0))  # The factor to reduce noise by in the center.
+            rCenterScale = ur(low=rEdgeScale, high=ur(31.0))  # The factor to reduce noise by in the center.
             d            = 2**ceil(log2(np.amax(self.bounds)))
             space        = ur(maxRange, size=(d+1,d+1))
             rw.mountains(space, d, r=ur, nsc=rCenterScale, nse=rEdgeScale)
@@ -204,7 +204,7 @@ class Grid3D(Grid):
             self._initBounds(np.array([widthOrArray, heightOrDeepCopy, depth]))
             ur           = self.r.uniform
             rEdgeScale   = ur(13.0)  # The factor to reduce noise by along the edges/faces.
-            rCenterScale = ur(low=rCenterScale, high=ur(31.0))  # The factor to reduce noise by in the center.
+            rCenterScale = ur(low=rEdgeScale, high=ur(31.0))  # The factor to reduce noise by in the center.
             d            = 2**ceil(log2(np.amax(self.bounds)))
             space        = ur(maxRange, size=(d+1, d+1, d+1))
             rw.clouds(space, d, r=ur, nsc=rCenterScale, nse=rEdgeScale)
