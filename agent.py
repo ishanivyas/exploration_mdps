@@ -1,8 +1,9 @@
 import numpy as np
 
 class Agent:
-    def __init__(self, env):
+    def __init__(self, env, r=np.random):
         # Store environment, state and action dimension
+        self.r              = r
         self.env            = env
         self.state_dim      = env.state_dim
         self.max_action_dim = env.max_action_dim
@@ -11,7 +12,7 @@ class Agent:
     def get_action(self, t):
         """Get the action to perform."""
         # Randomly do stuff
-        return np.random.choice(self.env.adjacent(self.state)[0])
+        return self.r.choice(self.env.adjacent(self.state)[0])
 
     def train(self, memory):
         pass
@@ -22,8 +23,9 @@ class Agent:
 
 
 class EpsilonGreedyAgent(Agent):
-    def __init__(self, env):
-        super(EpsilonGreedyAgent, self).__init__(env)
+    def __init__(self, env, r=np.random):
+        super(EpsilonGreedyAgent, self).__init__(env, r)
+
         # Agent learning parameters
         self.epsilon       = 1.0   # initial exploration probability
         self.epsilon_decay = 0.99  # epsilon decay after each episode
@@ -40,14 +42,14 @@ class EpsilonGreedyAgent(Agent):
     def get_action(self, t):
         actions_allowed = self.env.actions_allowed(self.state)
         # Epsilon-greedy agent policy
-        if np.random.uniform(0, 1) < self.epsilon:
+        if self.r.uniform(0, 1) < self.epsilon:
             # explore
-            return actions_allowed[np.random.choice(len(actions_allowed))]
+            return actions_allowed[self.r.choice(len(actions_allowed))]
         else:
             # exploit on allowed actions
             Q_s             = self.Q[self.state, actions_allowed]
             actions_greedy  = actions_allowed[np.flatnonzero(Q_s == np.max(Q_s))]
-            return np.random.choice(actions_greedy)
+            return self.r.choice(actions_greedy)
 
     def reward(self, state, time):
         print(state)
