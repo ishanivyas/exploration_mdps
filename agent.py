@@ -67,7 +67,7 @@ class EpsilonGreedyAgent(Agent):
         """
         (state, action, state_next, reward, done) = memory
         sa = (state, action)
-        max_next_value = np.max(list(self.Q[(state_next, a)] for a in self.env.actions_allowed(state_next)))
+        max_next_value = np.amax(list(self.Q[(state_next, a)] for a in self.env.actions_allowed(state_next)))
         self.Q[sa] += self.beta * (reward + self.gamma*max_next_value - self.Q[sa])
 
     def display_q_values(self):
