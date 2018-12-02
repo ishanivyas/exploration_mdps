@@ -134,6 +134,7 @@ if __name__ == "__main__":
     import os
     np.set_printoptions(linewidth=os.get_terminal_size().columns)
     #-np.set_printoptions(sign=' ')
+    np.random.seed(1)
 
     print("SmallWorld:")
     sw = gw.Grid2D(np.arange(64).reshape((8,8)))
@@ -151,7 +152,9 @@ if __name__ == "__main__":
     d = w.distance(np.array([1,1]), np.array([3,6]))
     print(d)
 
-    print("\nAdjacent:\n")
-    print(w.adjacent(np.array([7,7])))
+    print("\nAdjacent to <7,7>:")
+    act,adj = w.adjacent(np.array([7,7]))
+    print("  Actions: %s" % str(act))
+    print("  Adjacent States: %s" % str(adj))
 
     test.main()
