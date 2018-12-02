@@ -11,8 +11,7 @@ class Agent:
 
     def get_action(self, t):
         """Get the action to perform."""
-        # Randomly do stuff
-        return self.r.choice(self.env.adjacent(self.state)[0])
+        pass
 
     def train(self, memory):
         pass
@@ -22,13 +21,16 @@ class Agent:
         pass
 
 
-class EpsilonGreedyAgent(Agent):
+class RandomAgent(Agent):
     def __init__(self, env, r=np.random):
-        super(EpsilonGreedyAgent, self).__init__(env, r)
+        super(RandomAgent, self).__init__(env, r)
 
-        # Agent learning parameters
-        self.epsilon       = 1.0   # initial exploration probability
-        self.epsilon_decay = 0.99  # epsilon decay after each episode
+    def get_action(self, t):
+        return self.r.choice(self.env.actions_allowed(self.state))
+
+class GreedyAgent(Agent):
+    def __init__(self, env, r=np.random):
+        super(GreedyAgent, self).__init__(env, r)
         self.beta          = 0.99  # learning rate
         self.gamma         = 0.99  # reward discount factor
 
@@ -39,21 +41,15 @@ class EpsilonGreedyAgent(Agent):
             for a in env.actions_allowed(s):
                 self.Q[(s, tuple(a))] = 0
 
-    def get_action(self, t):
-        actions_allowed = self.env.actions_allowed(self.state)
-        # Epsilon-greedy agent policy
-        if self.r.uniform(0, 1) < self.epsilon:
-            # explore
-            return actions_allowed[self.r.choice(len(actions_allowed))]
-        else:
-            # exploit on allowed actions
-            Q_s             = self.Q[self.state, actions_allowed]
-            actions_greedy  = actions_allowed[np.flatnonzero(Q_s == np.max(Q_s))]
-            return self.r.choice(actions_greedy)
-
     def reward(self, state, time):
         print(state)
         return self.env[tuple(int(i) for i in state)]
+
+    def get_action(self, t):
+        actions_allowed = self.env.actions_allowed(self.state)
+        Q_s             = self.Q[(self.state, tuple(actions_allowed))]
+        actions_greedy  = actions_allowed[np.flatnonzero(Q_s == np.max(Q_s))]
+        return self.r.choice(actions_greedy)
 
     def train(self, memory):
         """
@@ -69,7 +65,7 @@ class EpsilonGreedyAgent(Agent):
         """
         (state, action, state_next, reward, done) = memory
         sa = (state, action)
-        max_next_value = np.amax(list(self.Q[(state_next, a)] for a in self.env.actions_allowed(state_next)))
+        max_next_value = np.max(list(self.Q[(state_next, a)] for a in self.env.actions_allowed(state_next)))
         self.Q[sa] += self.beta * (reward + self.gamma*max_next_value - self.Q[sa])
 
     def display_q_values(self):
@@ -77,3 +73,21 @@ class EpsilonGreedyAgent(Agent):
         for k, v in self.Q.items():
             s, a = k
             print("State: ", s, "; Action: ", a, "; Q-Value", v)
+
+
+class EpsilonGreedyAgent(GreedyAgent):
+    def __init__(self, env, eps=1.0, r=np.random):
+        super(EpsilonGreedyAgent, self).__init__(env, r)
+        # Epsilon learning parameters
+        self.epsilon       = eps   # initial exploration probability
+        self.epsilon_decay = 0.99  # epsilon decay after each episode
+
+    def get_action(self, t):
+        # Epsilon-greedy agent policy
+        if self.r.uniform(0, 1) < self.epsilon:
+            # Explore
+            actions_allowed = self.env.actions_allowed(self.state)
+            return actions_allowed[int(self.r.uniform(len(actions_allowed)))]
+        else:
+            # Exploit on allowed actions
+            return super(EpsilonGreedyAgent, self).get_action(t)
