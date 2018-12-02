@@ -202,7 +202,7 @@ class Grid3D(Grid):
                     action = np.array([dx,dy,dz])
                     s_prime = s + action
                     if np.amin(s_prime) < 0: continue
-                    if s_prime[0] >= self.width or s_prime[1] >= self.height or s_prime[2] >= self.depth:
+                    if self.distance(s, s_prime) == 0 or not self.contains(s_prime):
                         continue
                     act.append(action)
                     adj.append(s_prime)
