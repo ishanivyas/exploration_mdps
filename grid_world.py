@@ -31,7 +31,7 @@ class World:
             Returns the next state after taking action `a` from state `s`.
             NOTE: for some Worlds this may not be deterministic.
         """
-        return np.add(s, a)
+        return tuple(np.add(s, a))
 
 
 class Grid(World):
@@ -49,8 +49,7 @@ class Grid(World):
 
     def randomState(self):
         """Returns the coordinates of a random state."""
-        return np.floor(np.bounds
-                        * np.uniform.random(size=np.bounds.shape))
+        return tuple(np.floor(self.bounds * np.random.uniform(size=self.bounds.shape)))
 
 
 class Grid2D(Grid):
@@ -123,9 +122,9 @@ class Grid2D(Grid):
                 s_prime = s + action
                 if self.distance(s, s_prime) == 0 or not self.contains(s_prime):
                     continue
-                act.append(np.array([dx,dy]))
+                act.append(tuple(action))
                 adj.append(s_prime)
-        return act,adj
+        return tuple(act),tuple(adj)
 
     def _getLegacyText(self):
         t = [[self.data[x][y] for x in range(self.width)] for y in range(self.height)]
@@ -207,7 +206,7 @@ class Grid3D(Grid):
                         continue
                     act.append(action)
                     adj.append(s_prime)
-        return act,adj
+        return tuple(act),tuple(adj)
 
     def __str__(self):
         return str(self.data)
@@ -257,7 +256,7 @@ class EpsilonGreedyAgent(Agent):
         states = env.enumerateStates()
         for s in states:
             for a in env.actions_allowed(s):
-                self.Q[(s, a)] = 0
+                self.Q[(s, tuple(a))] = 0
 
     def get_action(self, t):
         actions_allowed = self.env.actions_allowed(self.state)
@@ -271,8 +270,9 @@ class EpsilonGreedyAgent(Agent):
             actions_greedy  = actions_allowed[np.flatnonzero(Q_s == np.max(Q_s))]
             return np.random.choice(actions_greedy)
 
-    def reward(self, world, state, time):
-        return world[state]
+    def reward(self, state, time):
+        print(state)
+        return self.env[tuple(int(i) for i in state)]
 
     def train(self, memory):
         """
@@ -291,45 +291,8 @@ class EpsilonGreedyAgent(Agent):
         max_next_value = np.max(list(self.Q[(state_next, a)] for a in self.env.actions_allowed(state_next)))
         self.Q[sa] += self.beta * (reward + self.gamma*max_next_value - self.Q[sa])
 
-    def display_greedy_policy(self):
+    def display_q_values(self):
         # greedy policy = argmax[a'] Q[s,a']
         for k, v in self.Q.items():
             s, a = k
             print("State: ", s, "; Action: ", a, "; Q-Value", v)
-
-
-def Simulate(agent, env, T, sequential=False):
-    print(env.data)
-
-    # Set initial state.
-    if sequential:
-        next_state = agent.state
-
-    for t_i in range(T):
-        # Determine the state the agent begins in at this timestep.
-        if not sequential:
-            agent.state = env.randomState()
-        else:
-            agent.state = next_state
-
-        # Get the agent's action at this timestep.
-        a_i = agent.get_action(t_i)
-
-        # Get the next state by transitioning in the environment
-        next_state = env.transition(agent.state, a_i)
-
-        # Get the reward for performing that action at this timestep.
-        r_i = agent.reward(env, next_state, t_i)
-
-        # Do one round of training.
-        memory = (agent.state, a_i, next_state, r_i, False)
-        print("State, Action, New State, Reward at t = %d:" % t_i, memory)
-        agent.train(memory)
-    print("Here are the agent's final Q values:")
-    agent.display_greedy_policy()
-
-
-if __name__ == "__main__":
-    env = Grid2D(3, 3, 10)
-    Simulate(EpsilonGreedyAgent(env), env, 100)
-
