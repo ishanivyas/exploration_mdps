@@ -1,6 +1,7 @@
 """
 Test the random generation of square worlds.
 """
+import unittest as test
 import numpy as np
 import matplotlib.pyplot as plt
 import random_worlds as t
