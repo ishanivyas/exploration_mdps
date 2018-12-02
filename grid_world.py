@@ -7,8 +7,8 @@ import random_worlds as rw
 from math import log2,ceil
 
 class World:
-    def __init__(self):
-        pass
+    def __init__(self, r=np.random):
+        self.r = r
 
     def distance(self, s0, s1):
         """Return the (scalar) distance between the two states."""
@@ -39,8 +39,8 @@ class World:
 
 
 class Grid(World):
-    def __init__(self):
-        pass
+    def __init__(self, r=np.random):
+        super(Grid, self).__init__(r)
 
     def contains(self, s):
         """Return True if state is within the bounds of the World."""
@@ -53,20 +53,22 @@ class Grid(World):
 
     def randomState(self):
         """Returns the coordinates of a random state."""
-        return tuple(np.floor(self.bounds * np.random.uniform(size=self.bounds.shape)))
+        return tuple(np.floor(self.bounds
+                              * self.r.uniform(size=self.bounds.shape)))
 
 
 class Grid2D(Grid):
     """
     2D grid world that allows diagonal moves.
     """
-    def __init__(self, widthOrArray, height=None, maxRange=None):
+    def __init__(self, widthOrArray, height=None, maxRange=None, r=np.random):
         """
         Examples:
           w = Grid2D(3,4, 8)  # A 3x4 grid
           w = Grid2D(np.array([[1,2],
                                [2,3]]))
         """
+        super(Grid2D, self).__init__(r)
         self.terminalState  = 'TERMINAL_STATE'
         self.state_dim      = 2  # The number of coordinates needed to unambiguously define an agent's state in the world.
         self.max_action_dim = pow(3, self.state_dim) - 1
@@ -76,12 +78,12 @@ class Grid2D(Grid):
             self._initBounds(self.data.shape)
         else:
             self._initBounds(np.array([widthOrArray, height]))
-            r = np.random.uniform
-            rCenterScale = r(13.0)  # The factor to reduce noise by in the center.
-            rEdgeScale   = r(low=rCenterScale, high=r(31.0))  # The factor to reduce noise by along edges/faces.
+            ur           = self.r.uniform
+            rCenterScale = ur(13.0)  # The factor to reduce noise by in the center.
+            rEdgeScale   = ur(low=rCenterScale, high=ur(31.0))  # The factor to reduce noise by along edges/faces.
             d            = 2**ceil(log2(np.amax(self.bounds)))
-            space        = r(maxRange, size=(d+1,d+1))
-            rw.mountains(space, d, 0, 0, r, nsc=rCenterScale, nse=rEdgeScale)
+            space        = ur(maxRange, size=(d+1,d+1))
+            rw.mountains(space, d, r=ur, nsc=rCenterScale, nse=rEdgeScale)
             self.data = np.round(space[0:widthOrArray,0:height])
 
     def _initBounds(self, bounds):
@@ -149,8 +151,8 @@ class Grid2D(Grid):
 
 class OrthoGrid2D(Grid2D):
     """2D grid that only allows othogonal moves."""
-    def __init__(self, widthOrArray, height=None, maxRange=None):
-        super(OrthoGrid2D, self).__init__(widthOrArray, height, maxRange)
+    def __init__(self, widthOrArray, height=None, maxRange=None, r=np.random):
+        super(OrthoGrid2D, self).__init__(widthOrArray, height, maxRange, r)
         self.max_action_dim = 2*self.state_dim
 
     def distance(self, s0, s1):
@@ -180,13 +182,14 @@ class Grid3D(Grid):
     """
         3D grid world that allows diagonal moves.
     """
-    def __init__(self, widthOrArray, heightOrDeepCopy=None, depth=None, maxRange=None):
+    def __init__(self, widthOrArray, heightOrDeepCopy=None, depth=None, maxRange=None, r=np.random):
         """
         Examples:
           w = Grid3D(3,4,5, 8)
           w = Grid3D(np.array([[[1,2], [2,2]],
                                [[1,2], [3,4]]]))
         """
+        super(Grid3D, self).__init__(r)
         self.terminalState  = 'TERMINAL_STATE'
         self.state_dim      = 3   # The number of coordinates needed to unambiguously define an agent's state in the world.
         self.max_action_dim = pow(3, self.state_dim) - 1
@@ -199,12 +202,12 @@ class Grid3D(Grid):
             self._initBounds(self.data.shape)
         else:
             self._initBounds(np.array([widthOrArray, heightOrDeepCopy, depth]))
-            r = np.random.uniform
-            rCenterScale = r(13.0)  # The factor to reduce noise by in the center.
-            rEdgeScale = r(low=rCenterScale, high=r(31.0))  # The factor to reduce noise by along edges/faces.
-            d = 2**ceil(log2(np.amax(self.bounds)))
-            space = r(maxRange, size=(d+1, d+1, d+1))
-            rw.clouds(space, d, nsc=rCenterScale, nse=rEdgeScale)
+            ur           = self.r.uniform
+            rCenterScale = ur(13.0)  # The factor to reduce noise by in the center.
+            rEdgeScale   = ur(low=rCenterScale, high=ur(31.0))  # The factor to reduce noise by along edges/faces.
+            d            = 2**ceil(log2(np.amax(self.bounds)))
+            space        = ur(maxRange, size=(d+1, d+1, d+1))
+            rw.clouds(space, d, r=ur, nsc=rCenterScale, nse=rEdgeScale)
             self.data = np.round(space[0:widthOrArray, 0:heightOrDeepCopy, 0:depth])
 
     def _initBounds(self, bounds):
@@ -250,8 +253,8 @@ class Grid3D(Grid):
 
 class OrthoGrid3D(Grid3D):
     """3D grid that only allows othogonal moves."""
-    def __init__(self, widthOrArray, height=None, maxRange=None):
-        super(OrthoGrid3D, self).__init__(widthOrArray, height, maxRange)
+    def __init__(self, widthOrArray, height=None, maxRange=None, r=np.random):
+        super(OrthoGrid3D, self).__init__(widthOrArray, height, maxRange, r)
         self.max_action_dim = 2*self.state_dim
 
     def distance(self, s0, s1):
