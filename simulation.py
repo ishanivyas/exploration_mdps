@@ -14,10 +14,7 @@ class Simulation():
 
         for t_i in range(T):
             # Determine the state the agent begins in at this timestep.
-            if not sequential:
-                self.agent.state = self.env.randomState()
-            else:
-                self.agent.state = next_state
+            self.agent.state = next_state if sequential else self.env.randomState()
 
             # Get the agent's action at this timestep.
             a_i = self.agent.get_action(t_i)
