@@ -47,10 +47,15 @@ class Grid(World):
         d = np.abs(s0 - s1)  # Manhattan distance...
         return np.amax(d)    # ...allowing diagonals.
 
+    def randomState(self):
+        """Returns the coordinates of a random state."""
+        return np.floor(np.bounds
+                        * np.uniform.random(size=np.bounds.shape))
+
 
 class Grid2D(Grid):
     """
-    2D grid world
+    2D grid world that allows diagonal moves.
     """
     def __init__(self, widthOrArray, height=None, maxRange=None):
         """
@@ -61,22 +66,25 @@ class Grid2D(Grid):
         """
         self.terminalState  = 'TERMINAL_STATE'
         self.state_dim      = 2  # The number of coordinates needed to unambiguously define an agent's state in the world.
-        self.max_action_dim = 8  # 3*3 - 1
+        self.max_action_dim = pow(3, self.state_dim) - 1
 
         if isinstance(widthOrArray, np.ndarray):
-            self.width, self.height = widthOrArray.shape[0:2]
-            self.data = widthOrArray
+            self.data   = widthOrArray
+            self._initBounds(self.data.shape)
         else:
-            self.bounds         = np.array([widthOrArray, height])
-            self.width          = widthOrArray
-            self.height         = height
+            self._initBounds(np.array([widthOrArray, height]))
             r = np.random.uniform
             rCenterScale = r(13.0)  # The factor to reduce noise by in the center.
-            rEdgeScale = r(low=rCenterScale, high=r(31.0))  # The factor to reduce noise by along edges/faces.
-            d = 2**ceil(log2(max(widthOrArray, height)))
-            space = r(maxRange, size=(d+1,d+1))
+            rEdgeScale   = r(low=rCenterScale, high=r(31.0))  # The factor to reduce noise by along edges/faces.
+            d            = 2**ceil(log2(np.amax(self.bounds)))
+            space        = r(maxRange, size=(d+1,d+1))
             rw.mountains(space, d, 0, 0, r, nsc=rCenterScale, nse=rEdgeScale)
             self.data = np.round(space[0:widthOrArray,0:height])
+
+    def _initBounds(self, bounds):
+        self.bounds = bounds
+        self.width  = bounds[0]
+        self.height = bounds[1]
 
     def __getitem__(self, i):
         return self.data[i]
@@ -127,10 +135,6 @@ class Grid2D(Grid):
     def __str__(self):
         return str(self._getLegacyText())
 
-    def randomState(self):
-        """Returns the coordinates of a random state."""
-        return (np.random.randint(self.width),np.random.randint(self.height))
-
     def enumerateStates(self):
         """Returns a list of all possible state coordinates [(x, y), ...]"""
         states = []
@@ -142,9 +146,9 @@ class Grid2D(Grid):
 
 class Grid3D(Grid):
     """
-        3D gridworld
+        3D grid world that allows diagonal moves.
     """
-    def __init__(self, widthOrArray, heightOrDeep=None, depth=None, maxRange=None):
+    def __init__(self, widthOrArray, heightOrDeepCopy=None, depth=None, maxRange=None):
         """
         Examples:
           w = Grid3D(3,4,5, 8)
@@ -153,26 +157,29 @@ class Grid3D(Grid):
         """
         self.terminalState  = 'TERMINAL_STATE'
         self.state_dim      = 3   # The number of coordinates needed to unambiguously define an agent's state in the world.
-        self.max_action_dim = 26  # 3*3*3 - 1
+        self.max_action_dim = pow(3, self.state_dim) - 1
+
         if isinstance(widthOrArray, np.ndarray):
-            if heightOrDeep:
+            if heightOrDeepCopy: # widthOrArray is array, so this is really deepCopy
                 self.data = np.array(widthOrArray)
             else:
                 self.data = widthOrArray
-            self.width = self.data.shape[0]
-            self.height = self.data.shape[1]
-            self.depth =  self.data.shape[2]
+            self._initBounds(self.data.shape)
         else:
-            self.width = widthOrArray
-            self.height = heightOrDeep
-            self.depth = depth
+            self._initBounds(np.array([widthOrArray, heightOrDeepCopy, depth]))
             r = np.random.uniform
             rCenterScale = r(13.0)  # The factor to reduce noise by in the center.
             rEdgeScale = r(low=rCenterScale, high=r(31.0))  # The factor to reduce noise by along edges/faces.
-            d = 2**ceil(log2(max(widthOrArray, height, depth)))
+            d = 2**ceil(log2(np.amax(self.bounds)))
             space = r(maxRange, size=(d+1, d+1, d+1))
             rw.clouds(space, d, nsc=rCenterScale, nse=rEdgeScale)
-            self.data = np.round(space[0:widthOrArray, 0:height, 0:depth])
+            self.data = np.round(space[0:widthOrArray, 0:heightOrDeepCopy, 0:depth])
+
+    def _initBounds(self, bounds):
+        self.bounds = bounds
+        self.width  = bounds[0]
+        self.height = bounds[1]
+        self.depth  = bounds[2]
 
     def copy(self):
         """Copy the data of a 3D grid into a new instance of Grid3D."""
@@ -204,11 +211,6 @@ class Grid3D(Grid):
 
     def __str__(self):
         return str(self.data)
-
-    def randomState(self):
-        return np.array([np.random.randint(self.width),
-                         np.random.randint(self.height),
-                         np.random.randint(self.depth)])
 
 
 def makeGrid(gridString):
