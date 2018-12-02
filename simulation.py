@@ -1,4 +1,5 @@
 import grid_world as gw
+
 class Simulation():
     def __init__(self, agent, env):
         self.agent = agent
@@ -31,7 +32,7 @@ class Simulation():
             memory = (self.agent.state, a_i, next_state, r_i, False)
             print("State, Action, New State, Reward at t = %d:" % t_i, memory)
             self.agent.train(memory)
-    
+
     def display_agent_Q(self):
         print("Here are the agent's final Q values:")
         self.agent.display_q_values()

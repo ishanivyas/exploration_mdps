@@ -26,6 +26,10 @@ class World:
         """Return the available actions from `s`."""
         return self.adjacent(s)[0]
 
+    def enumerateStates(self):
+        """List all of the possible states in the World."""
+        pass
+
     def transition(self, s, a):
         """
             Returns the next state after taking action `a` from state `s`.
@@ -143,6 +147,35 @@ class Grid2D(Grid):
         return states
 
 
+class OrthoGrid2D(Grid2D):
+    """2D grid that only allows othogonal moves."""
+    def __init__(self, widthOrArray, height=None, maxRange=None):
+        super(OrthoGrid2D, self).__init__(widthOrArray, height, maxRange)
+        self.max_action_dim = 2*self.state_dim
+
+    def distance(self, s0, s1):
+        return np.sum(np.abs(s0 - s1))
+
+    def adjacent(self, s):
+        adj = []
+        act = []
+        for dx in [-1,1]:
+            action = np.array([dx, 0])
+            s_prime = s + action
+            if not self.contains(s_prime): continue
+            act.append(tuple(action))
+            adj.append(s_prime)
+
+        for dy in [-1,1]:
+            action = np.array([0, dy])
+            s_prime = s + action
+            if not self.contains(s_prime): continue
+            act.append(tuple(action))
+            adj.append(s_prime)
+
+        return tuple(act),tuple(adj)
+
+
 class Grid3D(Grid):
     """
         3D grid world that allows diagonal moves.
@@ -208,91 +241,44 @@ class Grid3D(Grid):
                     adj.append(s_prime)
         return tuple(act),tuple(adj)
 
+    def enumerateStates(self):
+        pass
+
     def __str__(self):
         return str(self.data)
 
 
-def makeGrid(gridString):
-    width, height = len(gridString[0]), len(gridString)
-    grid = Grid2D(width, height)
-    for ybar, line in enumerate(gridString):
-        y = height - ybar - 1
-        for x, el in enumerate(line):
-            grid[x][y] = el
-    return grid
+class OrthoGrid3D(Grid3D):
+    """3D grid that only allows othogonal moves."""
+    def __init__(self, widthOrArray, height=None, maxRange=None):
+        super(OrthoGrid3D, self).__init__(widthOrArray, height, maxRange)
+        self.max_action_dim = 2*self.state_dim
 
+    def distance(self, s0, s1):
+        return np.sum(np.abs(s0 - s1))
 
-class Agent:
-    def __init__(self, env):
-        # Store environment, state and action dimension
-        self.env            = env
-        self.state_dim      = env.state_dim
-        self.max_action_dim = env.max_action_dim
-        self.state          = env.randomState()
+    def adjacent(self, s):
+        adj = []
+        act = []
+        for dx in [-1,1]:
+            action = np.array([dx, 0, 0])
+            s_prime = s + action
+            if not self.contains(s_prime): continue
+            act.append(tuple(action))
+            adj.append(s_prime)
 
-    def get_action(self, t):
-        """Get the action to perform."""
-        # Randomly do stuff
-        return np.random.choice(self.env.adjacent(self.state)[0])
+        for dy in [-1,1]:
+            action = np.array([0, dy, 0])
+            s_prime = s + action
+            if not self.contains(s_prime): continue
+            act.append(tuple(action))
+            adj.append(s_prime)
 
-    def train(self, memory):
-        pass
+        for dz in [-1,1]:
+            action = np.array([0, 0, dz])
+            s_prime = s + action
+            if not self.contains(s_prime): continue
+            act.append(tuple(action))
+            adj.append(s_prime)
 
-    def reward(self, world, state, time):
-        """Get the reward for an agent in a particular state of the world at a given time."""
-        pass
-
-class EpsilonGreedyAgent(Agent):
-    def __init__(self, env):
-        super(EpsilonGreedyAgent, self).__init__(env)
-        # Agent learning parameters
-        self.epsilon       = 1.0   # initial exploration probability
-        self.epsilon_decay = 0.99  # epsilon decay after each episode
-        self.beta          = 0.99  # learning rate
-        self.gamma         = 0.99  # reward discount factor
-
-        # Initialize Q[s,a] table
-        self.Q = {}
-        states = env.enumerateStates()
-        for s in states:
-            for a in env.actions_allowed(s):
-                self.Q[(s, tuple(a))] = 0
-
-    def get_action(self, t):
-        actions_allowed = self.env.actions_allowed(self.state)
-        # Epsilon-greedy agent policy
-        if np.random.uniform(0, 1) < self.epsilon:
-            # explore
-            return actions_allowed[np.random.choice(len(actions_allowed))]
-        else:
-            # exploit on allowed actions
-            Q_s             = self.Q[self.state, actions_allowed]
-            actions_greedy  = actions_allowed[np.flatnonzero(Q_s == np.max(Q_s))]
-            return np.random.choice(actions_greedy)
-
-    def reward(self, state, time):
-        print(state)
-        return self.env[tuple(int(i) for i in state)]
-
-    def train(self, memory):
-        """
-            Update:
-
-                Q[s,a] <- Q[s,a] + beta * (R[s,a] + gamma * max(Q[s,:]) - Q[s,a])
-
-            Where:
-
-                R[s,a] = reward for taking action a from state s
-                beta   = learning rate
-                gamma  = discount factor
-        """
-        (state, action, state_next, reward, done) = memory
-        sa = (state, action)
-        max_next_value = np.max(list(self.Q[(state_next, a)] for a in self.env.actions_allowed(state_next)))
-        self.Q[sa] += self.beta * (reward + self.gamma*max_next_value - self.Q[sa])
-
-    def display_q_values(self):
-        # greedy policy = argmax[a'] Q[s,a']
-        for k, v in self.Q.items():
-            s, a = k
-            print("State: ", s, "; Action: ", a, "; Q-Value", v)
+        return tuple(act),tuple(adj)
