@@ -5,7 +5,7 @@ import unittest as test
 import numpy as np
 import grid_world as gw
 
-class Grid2DTest(test.TestCase):
+class GridTest(test.TestCase):
     def testContains(self):
         w2d = gw.Grid2D(np.zeros((8,8)))
         self.assertTrue( w2d.contains(np.array([0,0])))
