@@ -27,7 +27,7 @@ class Simulation():
 
             # Do one round of training.
             memory = (self.agent.state, a_i, next_state, r_i, False)
-            print("State, Action, New State, Reward at t = %d:" % t_i, memory)
+            print("State, Action, New State, Reward at t = %d: %s" % (t_i, memory))
             self.agent.train(memory)
 
     def display_agent_Q(self):

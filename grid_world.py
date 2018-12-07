@@ -49,12 +49,27 @@ class Grid(World):
     def distance(self, s0, s1):
         """Return the Manhattan distance between the two states but allow diagonal moves."""
         d = np.abs(s0 - s1)  # Manhattan distance...
-        return np.amax(d)    # ...allowing diagonals.
+        return np.max(d)     # ...allowing diagonals.
 
     def randomState(self):
         """Returns the coordinates of a random state."""
         return tuple(np.floor(np.array(self.bounds)
                               * self.r.uniform(size=(len(self.bounds)))))
+
+def enumerateStates(): # self
+    b = np.array([3,4])  # b = np.array(self.bounds)
+    zero = np.zeros(b.shape)
+    one = np.zeros(b.shape)
+    one[0] = 1
+    s = one[:]
+    states = [zero[:]]
+    while not np.equal(s, zero).all():
+        states.append(s)
+        s = s + one
+        while np.greater_equal(s,b).any():
+            c = np.roll(np.where(np.greater_equal(s,b), one, zero), 1)
+            s = s + c
+    return states
 
 
 class Grid2D(Grid):
@@ -81,7 +96,7 @@ class Grid2D(Grid):
             ur           = self.r.uniform
             rEdgeScale   = ur(13.0)  # The factor to reduce noise by along the edge/face.
             rCenterScale = ur(low=rEdgeScale, high=ur(31.0))  # The factor to reduce noise by in the center.
-            d            = 2**ceil(log2(np.amax(self.bounds)))
+            d            = 2**ceil(log2(np.max(self.bounds)))
             space        = ur(maxRange, size=(d+1,d+1))
             rw.mountains(space, d, r=ur, nsc=rCenterScale, nse=rEdgeScale)
             self.data = np.round(space[0:widthOrArray,0:height])
@@ -205,7 +220,7 @@ class Grid3D(Grid):
             ur           = self.r.uniform
             rEdgeScale   = ur(13.0)  # The factor to reduce noise by along the edges/faces.
             rCenterScale = ur(low=rEdgeScale, high=ur(31.0))  # The factor to reduce noise by in the center.
-            d            = 2**ceil(log2(np.amax(self.bounds)))
+            d            = 2**ceil(log2(np.max(self.bounds)))
             space        = ur(maxRange, size=(d+1, d+1, d+1))
             rw.clouds(space, d, r=ur, nsc=rCenterScale, nse=rEdgeScale)
             self.data = np.round(space[0:widthOrArray, 0:heightOrDeepCopy, 0:depth])
@@ -234,10 +249,8 @@ class Grid3D(Grid):
         for dz in d:
             for dy in d:
                 for dx in d:
-                    if dx == dy == dz == 0: continue
                     action = np.array([dx,dy,dz])
                     s_prime = s + action
-                    if np.amin(s_prime) < 0: continue
                     if self.distance(s, s_prime) == 0 or not self.contains(s_prime):
                         continue
                     act.append(action)
@@ -249,6 +262,15 @@ class Grid3D(Grid):
 
     def __str__(self):
         return str(self.data)
+
+    def enumerateStates(self):
+        """Returns a list of all possible state coordinates [(x, y, z), ...]"""
+        states = []
+        for i in range(self.width):
+            for j in range(self.height):
+                for k in range(self.depth):
+                    states.append((i, j, k))
+        return states
 
 
 class OrthoGrid3D(Grid3D):

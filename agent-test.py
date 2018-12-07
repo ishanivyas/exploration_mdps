@@ -12,7 +12,24 @@ class AgentsTest(test.TestCase):
         env = gw.Grid2D(np.array([[1,2,3],
                                   [2,3,4],
                                   [3,4,5]]), r=rs)
-        eg  = a.EpsilonGreedyAgent(env, r=rs)
+        ra  = a.RandomAgent(env, start=[1,1], r=rs)
+        # TODO have the agent take a step
+
+    def testGreedyAgent(self):
+        rs  = np.random.RandomState(seed=1)
+        env = gw.Grid2D(np.array([[1,2,3],
+                                  [2,3,4],
+                                  [3,4,5]]), r=rs)
+        ga  = a.GreedyAgent(env, start=[1,1], r=rs)
+        # TODO have the agent take a step
+
+    def testEpsilonGreedyAgent(self):
+        rs  = np.random.RandomState(seed=1)
+        env = gw.Grid2D(np.array([[1,2,3],
+                                  [2,3,4],
+                                  [3,4,5]]), r=rs)
+        eg  = a.EpsilonGreedyAgent(env, start=[1,1], r=rs)
+        # TODO have the agent take a step
 
 if __name__ == "__main__":
     test.main()
