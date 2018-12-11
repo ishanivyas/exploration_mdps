@@ -181,7 +181,7 @@ class Grid2D(Grid):
 
 # A 3xN Grid where you can only move in one direction.
 class OneWayGrid2D(Grid2D):
-    def __init__(self, N, mu1=-5, mu2=2, mu3=5):
+    def __init__(self, N, mu1=-8, mu2=2, mu3=5):
         super(OneWayGrid2D, self).__init__(3, N)
         self.N = N
         self.mu1 = mu1

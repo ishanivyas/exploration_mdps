@@ -49,15 +49,17 @@ class QAgent(RandomAgent):
     def __init__(self, env, start=None, r=np.random, reward_prior=0):
         super(QAgent, self).__init__(env, start, r)
         self.beta          = 0.98  # learning rate
-        self.gamma         = 0.95  # reward discount factor
+        self.gamma         = 0.5  # reward discount factor
 
-        # Initialize Q[s,a] table
-        self.Q = {}
+        # Initialize Q[s,a] table and keep counts of how many times we perform each [s, a]
+        self.Q      = {}
+        self.counts = {}
         for s in env.enumerateStates():
             for a in env.actions_allowed(s):
                 if a != env.exitAction:
                     a = tuple(a)
                 self.Q[(s, a)] = reward_prior
+                self.counts[(s, a)] = 0
 
     def reward(self, state, time):
         return self.env[tuple(int(i) for i in state)]
@@ -83,12 +85,14 @@ class QAgent(RandomAgent):
         self.Q[sa] += self.beta * (reward + self.gamma*max_next_value - self.Q[sa])
         if verbose:
             print("Q value for State:", state, "; Action:", action, "; went from", oldq, "to", self.Q[sa])
+        self.counts[sa] += 1
 
     def display_q_values(self):
         # greedy policy = argmax[a'] Q[s,a']
         for k, v in self.Q.items():
             s, a = k
-            print("State: ", s, "; Action: ", a, "; Q-Value", v)
+            print("State: ", s, "; Action: ", a, "; Q-Value", v, "; Visit Count: ", self.counts[k])
+        return self.Q, self.counts
 
 # An agent that does Q value updates and plays the best known action deterministically.
 class GreedyAgent(QAgent):
@@ -108,7 +112,7 @@ class GreedyAgent(QAgent):
         return action
 
 # Plays randomly with probability `eps`, which decays over time.
-class EpsilonGreedyAgent(QAgent):
+class EpsilonGreedyAgent(GreedyAgent):
     def __init__(self, env, eps=1.0, decay=1.0, start=None, r=np.random, reward_prior=0):
         super(EpsilonGreedyAgent, self).__init__(env, start, r, reward_prior)
         # Epsilon learning parameters
@@ -151,20 +155,16 @@ class GreedyUCBAgent(GreedyAgent):
         # Determines how large the confidence interval will be
         self.alpha = alpha 
 
-        self.counts = self.Q.copy()
-        for k in self.counts:
-            self.counts[k] = 1
-
-
-    def get_action(self, t):
+    def get_action(self, t, verbose=False):
         actions_allowed = self.env.actions_allowed(self.state)
         Q_s = []
         delta = np.e ** -self.alpha
         for a in actions_allowed:
             q = self.Q[(self.state, a)]
-            count = self.counts[(self.state, a)]
+            count = self.counts[(self.state, a)] + 0.01
             q_boosted = q + np.sqrt(8*np.log(1/delta) / count)
-            print("Count = %d: q was boosted from" % count, q, "to", q_boosted)
+            if verbose:
+                print("Count = %d: q was boosted from" % count, q, "to", q_boosted)
             Q_s.append(q_boosted)
 
         amax = np.flatnonzero(Q_s == np.max(Q_s))
@@ -174,11 +174,3 @@ class GreedyUCBAgent(GreedyAgent):
         if action != self.env.exitAction:
             action = tuple(action)
         return action
-
-    def train(self, memory, verbose=False):
-        super(GreedyUCBAgent, self).train(memory, verbose)
-        state = memory[0]
-        action = memory[1]
-
-        # Record the fact that we chose this action.
-        self.counts[(state, action)] += 1
