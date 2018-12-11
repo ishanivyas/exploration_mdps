@@ -35,12 +35,14 @@ class World:
             Returns the next state after taking action `a` from state `s`.
             NOTE: for some Worlds this may not be deterministic.
         """
-        return tuple(np.add(s, a))
+        pass
 
 
 class Grid(World):
     def __init__(self, r=np.random):
         super(Grid, self).__init__(r)
+        self.exitAction     = 'EXIT'
+        self.terminalState  = 'TERMINAL_STATE'
 
     def contains(self, s):
         """Return True if state is within the bounds of the World."""
@@ -56,27 +58,35 @@ class Grid(World):
         return tuple(np.floor(np.array(self.bounds)
                               * self.r.uniform(size=(len(self.bounds)))))
 
-def enumerateStates(): # self
-    b = np.array([3,4])  # b = np.array(self.bounds)
-    zero = np.zeros(b.shape)
-    one = np.zeros(b.shape)
-    one[0] = 1
-    s = one[:]
-    states = [zero[:]]
-    while not np.equal(s, zero).all():
-        states.append(s)
-        s = s + one
-        while np.greater_equal(s,b).any():
-            c = np.roll(np.where(np.greater_equal(s,b), one, zero), 1)
-            s = s + c
-    return states
+    def transition(self, s, a):
+        """
+            Returns the next state after taking action `a` from state `s`.
+            NOTE: for some Worlds this may not be deterministic.
+        """
+        return tuple(np.add(s, a)), 0
+
+# Idk why this is here - Aarash
+# def enumerateStates(): # self
+#     b = np.array([3,4])  # b = np.array(self.bounds)
+#     zero = np.zeros(b.shape)
+#     one = np.zeros(b.shape)
+#     one[0] = 1
+#     s = one[:]
+#     states = [zero[:]]
+#     while not np.equal(s, zero).all():
+#         states.append(s)
+#         s = s + one
+#         while np.greater_equal(s,b).any():
+#             c = np.roll(np.where(np.greater_equal(s,b), one, zero), 1)
+#             s = s + c
+#     return states
 
 
 class Grid2D(Grid):
     """
     2D grid world that allows diagonal moves.
     """
-    def __init__(self, widthOrArray, height=None, maxRange=None, r=np.random):
+    def __init__(self, widthOrArray, height=None, maxRange=1, r=np.random):
         """
         Examples:
           w = Grid2D(3,4, 8)  # A 3x4 grid
@@ -84,7 +94,6 @@ class Grid2D(Grid):
                                [2,3]]))
         """
         super(Grid2D, self).__init__(r)
-        self.terminalState  = 'TERMINAL_STATE'
         self.state_dim      = 2  # The number of coordinates needed to unambiguously define an agent's state in the world.
         self.max_action_dim = pow(3, self.state_dim) - 1
 
@@ -163,6 +172,63 @@ class Grid2D(Grid):
                 states.append((i, j))
         return states
 
+    def transition(self, s, a):
+        """
+            Returns the next state after taking action `a` from state `s`.
+            NOTE: for some Worlds this may not be deterministic.
+        """
+        return tuple(np.add(s, a)), self[tuple(int(i) for i in s)]
+
+# A 3xN Grid where you can only move in one direction.
+class OneWayGrid2D(Grid2D):
+    def __init__(self, N, mu1=-5, mu2=2, mu3=5):
+        super(OneWayGrid2D, self).__init__(3, N)
+        self.N = N
+        self.mu1 = mu1
+        self.mu2 = mu2
+        self.mu3 = mu3
+
+        for i in range(N//2):
+            self.data[0][i] = np.random.normal(mu1, 2)
+            self.data[1][i] = np.random.normal(mu2, 2)
+            self.data[2][i] =np.random.normal(mu3, 2)
+
+        for i in range(N//2, N):
+            self.data[2][i] = np.random.normal(mu1, 2)
+            self.data[1][i] = np.random.normal(mu2, 2)
+            self.data[0][i] =np.random.normal(mu3, 2)
+
+    def adjacent(self, s):
+        """Return the actions available from state s and the states they reach."""
+        adj = []
+        act = []
+        _dy = [0,1]
+        _dx = [-1, 0, 1]
+        for dy in _dy:
+            for dx in _dx:
+                action = np.array([dx, dy])
+                s_prime = s + action
+                if self.distance(s, s_prime) == 0 or not self.contains(s_prime):
+                    continue
+                act.append(tuple(action))
+                adj.append(s_prime)
+
+        if s[1] == self.N - 1:
+            act.append(self.exitAction)
+            adj.append(self.terminalState)
+        return tuple(act),tuple(adj)
+
+    def transition(self, s, a):
+        if a == self.exitAction:
+            s_prime = self.terminalState
+            if s[0] == 0:
+                r = np.random.normal(self.mu1 * 2, 2)
+            elif s[1] == 1:
+                r = np.random.normal(self.mu2 * 2, 2)
+            else:
+                r = np.random.normal(self.mu3 * 2, 2)
+            return s_prime, r
+        return tuple(np.add(s, a)), self[tuple(int(i) for i in s)]
 
 class OrthoGrid2D(Grid2D):
     """2D grid that only allows othogonal moves."""
@@ -272,6 +338,12 @@ class Grid3D(Grid):
                     states.append((i, j, k))
         return states
 
+    def transition(self, s, a):
+        """
+            Returns the next state after taking action `a` from state `s`.
+            NOTE: for some Worlds this may not be deterministic.
+        """
+        return tuple(np.add(s, a)), self[tuple(int(i) for i in s)]
 
 class OrthoGrid3D(Grid3D):
     """3D grid that only allows othogonal moves."""
