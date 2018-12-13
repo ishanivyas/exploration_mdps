@@ -1,5 +1,5 @@
 import grid_world as gw
-
+import numpy as np
 class Simulation():
     def __init__(self, agent, env):
         self.agent = agent
@@ -11,13 +11,14 @@ class Simulation():
 
     def simulate_random(self, T, sequential=False, verbose=False):
         # Set initial state.
-        if sequential:
-            next_state = self.agent.state
+        next_state = self.agent.state
 
-        for t_i in range(T):
+        for t_i in range(1, T + 1):
             # Determine the state the agent begins in at this timestep.
             self.agent.state = next_state if sequential and next_state != self.env.terminalState \
                 else self.env.randomState()
+            if next_state == self.env.terminalState:
+                self.agent.state = (np.random.randint(3), 0)
 
             # Get the agent's action at this timestep.
             a_i = self.agent.get_action(t_i)

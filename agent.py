@@ -158,7 +158,7 @@ class GreedyUCBAgent(GreedyAgent):
     def get_action(self, t, verbose=False):
         actions_allowed = self.env.actions_allowed(self.state)
         Q_s = []
-        delta = np.e ** -self.alpha
+        delta = t ** -self.alpha
         for a in actions_allowed:
             q = self.Q[(self.state, a)]
             count = self.counts[(self.state, a)] + 0.01
